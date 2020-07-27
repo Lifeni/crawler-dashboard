@@ -63,6 +63,9 @@ ROBOTSTXT_OBEY = True
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'spiderbot.pipelines.SpiderbotPipeline': 300,
+    # 'spiderbot.pipelines.PicturesPipeline': 300,
+    # 'spiderbot.pipelines.PoemsPipeline': 300,
+    # 'spiderbot.pipelines.SentencesPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -85,3 +88,10 @@ ITEM_PIPELINES = {
 # HTTPCACHE_DIR = 'httpcache'
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+MYSQL_DB_NAME = 'dashboard'
+MYSQL_HOST = '127.0.0.1'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'mysql'
+
+FEED_EXPORT_ENCODING = 'utf-8'
