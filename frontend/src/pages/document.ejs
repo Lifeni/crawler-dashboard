@@ -7,5 +7,15 @@
     <title>Dashboard</title>
 </head>
 <body>
+    <script>
+        const changeCanvas = ()=>{
+            const div =  document.querySelector('.word-count')
+          const canvas = document.querySelector('.word-count > canvas')
+          console.log(canvas);
+          canvas.width = div.getBoundingClientRect().width
+        }
+        document.addEventListener('DOMContentLoaded',changeCanvas)
+        window.addEventListener('resize', changeCanvas)
+    </script>
 </body>
 </html>
