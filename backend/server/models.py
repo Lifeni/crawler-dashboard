@@ -8,6 +8,11 @@
 from django.db import models
 
 
+# models 是 Django 自动生成的，这点还挺方便的
+
+# 预览改动： python manage.py inspectdb
+# 执行写入： python manage.py inspectdb > models.py
+
 class Pictures(models.Model):
     picture_url = models.CharField(max_length=255)
     picture_date = models.CharField(max_length=255)

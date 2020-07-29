@@ -124,4 +124,5 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
 
+# 允许跨域
 CORS_ORIGIN_ALLOW_ALL = True

@@ -1,9 +1,7 @@
-import json
-from urllib.parse import quote, unquote
+from urllib.parse import unquote
 
 from django.db.models import Count, Sum, Avg, Max, Min
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.http import JsonResponse
 
 from .models import Pictures
 from .models import Poems
@@ -17,9 +15,11 @@ from .models import Sentences
 def index(request):
     pictures_json = {
         'data_count': Pictures.objects.count(),
+        # aggregate 聚合
         'total_like_count': Pictures.objects.aggregate(Sum('picture_like'))['picture_like__sum'],
         'avg_like_count': Pictures.objects.aggregate(Avg('picture_like'))['picture_like__avg'],
         'max_like_count': Pictures.objects.aggregate(Max('picture_like'))['picture_like__max'],
+        # order_by 排序，加负号代表降序
         'max_like_count_image_url': Pictures.objects.order_by('-picture_like')[0].picture_url,
         'max_like_count_image_date': Pictures.objects.order_by('-picture_like')[0].picture_date,
         'max_like_count_image_text': Pictures.objects.order_by('-picture_like')[0].picture_description,
@@ -31,10 +31,14 @@ def index(request):
         'max_download_count_image_date': Pictures.objects.order_by('-picture_download')[0].picture_date,
         'max_download_count_image_text': Pictures.objects.order_by('-picture_download')[0].picture_description,
         'min_download_count': Pictures.objects.aggregate(Min('picture_download'))['picture_download__min'],
+        # 获取所有的图片数据
         'num_data': list(Pictures.objects.all().values('id', 'picture_date', 'picture_like', 'picture_download')),
     }
 
+    # 获取每个作者的词数量列表
     author_poem_list = Poems.objects.values('poem_author').annotate(Count('poem_author')).all().order_by('-poem_author__count')
+
+    # 获取每个词牌名的词数量列表
     poem_title_list = Poems.objects.values('poem_title').annotate(Count('poem_title')).all().order_by('-poem_title__count')
 
     poems_json = {
@@ -46,15 +50,18 @@ def index(request):
         'author_avg_poem_count': Poems.objects.count() / PoemsAuthors.objects.count(),
         'poem_title_data': list(poem_title_list),
         'poem_avg_title_count': Poems.objects.count() / Poems.objects.values('poem_title').distinct().count(),
+        # 只有一个作品的作者人数
         'poem_count_1': author_poem_list.filter(poem_author__count=1).count(),
     }
 
     sentences_json = {
         'data_count': Sentences.objects.count(),
+        # 句子的分类数据
         'sentence_data': list(
             Sentences.objects.values('sentence_category', 'sentence_category_description').annotate(Count('sentence_category')).all().order_by('-sentence_category__count'))
     }
 
+    # 概览数据
     overview_json = {
         'total_data_count': pictures_json['data_count'] + poems_json['data_count'] + poems_json['author_data_count'] + sentences_json['data_count'],
         'category_count': 3,
@@ -67,10 +74,11 @@ def index(request):
         'poems_poem_count': poems_json['data_count'],
         'poems_author_count': poems_json['author_data_count'],
         'sentences_data_count': sentences_json['data_count'],
-        'sentences_try_count': 6500,
+        'sentences_try_count': 6400,
         'sentences_category_count': 8,
     }
 
+    # 返回 JSON 数据，下同
     return JsonResponse({
         'code': '0',
         'message': 'ok',
@@ -81,9 +89,9 @@ def index(request):
     })
 
 
+# 获取随机一个句子
 def sentences(request):
     sentence = Sentences.objects.all().order_by('?').first()
-
     return JsonResponse({
         'code': '0',
         'message': 'ok',
@@ -95,6 +103,7 @@ def sentences(request):
     })
 
 
+# 获取指定作者信息
 def poems(request, name):
     author_name = unquote(name)
     return JsonResponse({
@@ -104,9 +113,9 @@ def poems(request, name):
     })
 
 
+# 获取指定图片信息
 def pictures(request, id):
     image = Pictures.objects.filter(id=id).first()
-
     return JsonResponse({
         'code': '0',
         'message': 'ok',

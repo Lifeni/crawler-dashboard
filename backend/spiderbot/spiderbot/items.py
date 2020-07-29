@@ -7,9 +7,11 @@ import scrapy
 
 
 class SpiderbotItem(scrapy.Item):
+    # 没有用
     pass
 
 
+# 必应壁纸 相关字段
 class PicturesItem(scrapy.Item):
     picture_url = scrapy.Field()
     picture_date = scrapy.Field()
@@ -18,6 +20,7 @@ class PicturesItem(scrapy.Item):
     picture_download = scrapy.Field()
 
 
+# 宋词 词 相关字段
 class PoemsItem(scrapy.Item):
     poem_author = scrapy.Field()
     poem_title = scrapy.Field()
@@ -25,11 +28,13 @@ class PoemsItem(scrapy.Item):
     poem_content = scrapy.Field()
 
 
+# 宋词 作者 相关字段
 class PoemsAuthorsItem(scrapy.Item):
     author_name = scrapy.Field()
     author_description = scrapy.Field()
 
 
+# 一言 相关字段
 class SentencesItem(scrapy.Item):
     sentence_id = scrapy.Field()
     sentence_category = scrapy.Field()

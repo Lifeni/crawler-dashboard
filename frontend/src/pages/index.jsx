@@ -1,3 +1,7 @@
+/**
+ * 主页采用模块化设计，模块在 /src/components/ 目录
+ */
+
 import Overview from '@/components/Overview';
 import Pictures from '@/components/Pictures';
 import Poems from '@/components/Poems';

@@ -13,6 +13,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import Section from './Section';
 import { DataContext } from '../pages/index';
 
+// 柱状图
 const ColumnBlock = () => {
   const data = useContext(DataContext).poems;
   if (data) {
@@ -105,6 +106,7 @@ const ColumnBlock = () => {
   return <Skeleton />;
 };
 
+// 词云
 const WordCountBlock = () => {
   const data = useContext(DataContext).poems;
   if (data) {
