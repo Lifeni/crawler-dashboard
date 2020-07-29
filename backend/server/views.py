@@ -20,12 +20,14 @@ def index(request):
         'avg_like_count': Pictures.objects.aggregate(Avg('picture_like'))['picture_like__avg'],
         'max_like_count': Pictures.objects.aggregate(Max('picture_like'))['picture_like__max'],
         'max_like_count_image_url': Pictures.objects.order_by('-picture_like')[0].picture_url,
+        'max_like_count_image_date': Pictures.objects.order_by('-picture_like')[0].picture_date,
         'max_like_count_image_text': Pictures.objects.order_by('-picture_like')[0].picture_description,
         'min_like_count': Pictures.objects.aggregate(Min('picture_like'))['picture_like__min'],
         'total_download_count': Pictures.objects.aggregate(Sum('picture_download'))['picture_download__sum'],
         'avg_download_count': Pictures.objects.aggregate(Avg('picture_download'))['picture_download__avg'],
         'max_download_count': Pictures.objects.aggregate(Max('picture_download'))['picture_download__max'],
         'max_download_count_image_url': Pictures.objects.order_by('-picture_download')[0].picture_url,
+        'max_download_count_image_date': Pictures.objects.order_by('-picture_download')[0].picture_date,
         'max_download_count_image_text': Pictures.objects.order_by('-picture_download')[0].picture_description,
         'min_download_count': Pictures.objects.aggregate(Min('picture_download'))['picture_download__min'],
         'num_data': list(Pictures.objects.all().values('picture_date', 'picture_like', 'picture_download'))
@@ -48,7 +50,8 @@ def index(request):
 
     sentences_json = {
         'data_count': Sentences.objects.count(),
-        'sentence_data': list(Sentences.objects.values('sentence_category').annotate(Count('sentence_category')).all().order_by('-sentence_category__count'))
+        'sentence_data': list(
+            Sentences.objects.values('sentence_category', 'sentence_category_description').annotate(Count('sentence_category')).all().order_by('-sentence_category__count'))
     }
 
     overview_json = {
@@ -67,7 +70,7 @@ def index(request):
         'sentences_category_count': 8,
     }
 
-    return JsonResponse({
+    response = JsonResponse({
         'code': '0',
         'message': 'ok',
         'overview': overview_json,
@@ -75,3 +78,7 @@ def index(request):
         'poems': poems_json,
         'sentences': sentences_json,
     })
+
+    response['Access-Control-Allow-Origin'] = '*'
+
+    return response
