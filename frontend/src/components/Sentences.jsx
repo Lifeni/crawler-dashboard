@@ -1,11 +1,57 @@
 import { Donut } from '@ant-design/charts';
-import { Card, Col, Row, Skeleton, Statistic } from 'antd';
+import {
+  Button,
+  Card,
+  Col,
+  Modal,
+  Row,
+  Skeleton,
+  Statistic,
+  Typography,
+  message,
+} from 'antd';
 import React, { useContext } from 'react';
 import { DataContext } from '../pages/index';
 import Section from './Section';
 
 export default () => {
   const data = useContext(DataContext).sentences;
+  const getRandomSentence = () => {
+    message.loading({ content: 'Loading...', key: 'sentence' });
+    fetch('http://localhost:8001/sentences/random/')
+      .then(response => response.json())
+      .then(data => {
+        message.success({
+          content: 'Loaded!',
+          key: 'sentence',
+          duration: 2,
+        });
+        Modal.info({
+          icon: null,
+          centered: true,
+          content: (
+            <div>
+              <Typography.Paragraph>
+                # {data.id} / {data.category}
+              </Typography.Paragraph>
+              <Typography.Title
+                style={{
+                  fontSize: '1.25rem',
+                  margin: '1rem 0',
+                  fontWeight: 'normal',
+                }}
+              >
+                {data.text}
+              </Typography.Title>
+              <Typography.Paragraph style={{ margin: '1rem 0 0 0' }}>
+                {data.from} {data.from_who ? '/' : ''} {data.from_who}
+              </Typography.Paragraph>
+            </div>
+          ),
+          onOk() {},
+        });
+      });
+  };
 
   if (data) {
     const config = {
@@ -36,13 +82,46 @@ export default () => {
         formatter: (text, item) =>
           `${item._origin.sentence_category}: ${item._origin.sentence_category__count}`,
       },
+      events: {
+        onPlotClick: e => {
+          try {
+            const d = e.target.cfg.element.data;
+            if (d) {
+              Modal.info({
+                title: '分类：' + d.sentence_category,
+                centered: true,
+                icon: null,
+                content: (
+                  <div>
+                    <Typography.Title
+                      style={{
+                        fontSize: '1.25rem',
+                        margin: '1rem 0',
+                        fontWeight: 'normal',
+                      }}
+                    >
+                      {d.sentence_category_description}
+                    </Typography.Title>
+                    <Typography.Paragraph style={{ margin: '1rem 0 0 0' }}>
+                      {d.sentence_category__count} 个句子
+                    </Typography.Paragraph>
+                  </div>
+                ),
+                onOk() {},
+              });
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        },
+      },
     };
 
     return (
       <Section title="一言" subtitle="Sentences">
         <Col span={24} md={24}>
           <Card title="统计数据">
-            <Row style={{ paddingBottom: 24 }} gutter={[48, 24]}>
+            <Row gutter={[48, 24]}>
               <Col span={14}>
                 <Donut {...config} />
               </Col>
@@ -67,7 +146,7 @@ export default () => {
                     />
                   </Col>
                 </Row>
-                <Row>
+                <Row gutter={[24, 24]}>
                   <Col span={24}>
                     <Statistic
                       title="最小的分类"
@@ -82,6 +161,18 @@ export default () => {
                         ' 个句子'
                       }
                     />
+                  </Col>
+                </Row>
+                <Row gutter={[24, 24]}>
+                  <Col span={24} style={{ padding: '0 12px' }}>
+                    <Button
+                      type="primary"
+                      size="large"
+                      onClick={getRandomSentence}
+                      style={{ marginTop: 180 }}
+                    >
+                      随机获取一个句子
+                    </Button>
                   </Col>
                 </Row>
               </Col>

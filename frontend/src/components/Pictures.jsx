@@ -1,5 +1,14 @@
 import { Area } from '@ant-design/charts';
-import { Card, Col, Row, Statistic, Skeleton } from 'antd';
+import {
+  Card,
+  Col,
+  Modal,
+  Row,
+  Statistic,
+  Typography,
+  Skeleton,
+  message,
+} from 'antd';
 import React, { useContext } from 'react';
 import { DataContext } from '../pages/index';
 import Section from './Section';
@@ -8,88 +17,104 @@ export default () => {
   const data = useContext(DataContext).pictures;
 
   if (data) {
-    const list = data['num_data'].sort((a, b) => {
-      const AMonth = Number(a['picture_date'].split('月')[0]);
-      const ADay = Number(a['picture_date'].split('月')[1].split('日')[0]);
-      const BMonth = Number(b['picture_date'].split('月')[0]);
-      const BDay = Number(b['picture_date'].split('月')[1].split('日')[0]);
-      if (AMonth > BMonth) {
-        return 1;
-      } else if (AMonth === BMonth) {
-        if (ADay > BDay) {
+    const likeList = data['num_data']
+      .map(obj => {
+        return {
+          id: obj['id'],
+          date: obj['picture_date'],
+          type: '点赞数量',
+          value: obj['picture_like'],
+        };
+      })
+      .sort((a, b) => {
+        const AMonth = Number(a['date'].split('月')[0]);
+        const ADay = Number(a['date'].split('月')[1].split('日')[0]);
+        const BMonth = Number(b['date'].split('月')[0]);
+        const BDay = Number(b['date'].split('月')[1].split('日')[0]);
+        if (AMonth > BMonth) {
           return 1;
+        } else if (AMonth === BMonth) {
+          if (ADay > BDay) {
+            return 1;
+          } else {
+            return -1;
+          }
         } else {
           return -1;
         }
-      } else {
-        return -1;
-      }
-    });
+      });
+    const downloadList = data['num_data']
+      .map(obj => {
+        return {
+          id: obj['id'],
+          date: obj['picture_date'],
+          type: '下载数量',
+          value: obj['picture_download'],
+        };
+      })
+      .sort((a, b) => {
+        const AMonth = Number(a['date'].split('月')[0]);
+        const ADay = Number(a['date'].split('月')[1].split('日')[0]);
+        const BMonth = Number(b['date'].split('月')[0]);
+        const BDay = Number(b['date'].split('月')[1].split('日')[0]);
+        if (AMonth > BMonth) {
+          return 1;
+        } else if (AMonth === BMonth) {
+          if (ADay > BDay) {
+            return 1;
+          } else {
+            return -1;
+          }
+        } else {
+          return -1;
+        }
+      });
 
-    const likeConfig = {
+    const list = [...likeList, ...downloadList];
+    const config = {
       title: {
         visible: true,
-        text: '点赞数',
+        text: '点赞和下载数',
       },
       description: {
         visible: true,
-        text: '统计 90 天内图片点赞数量变化趋势',
+        text: '统计 90 天内图片点赞和下载数量变化趋势',
       },
       padding: 'auto',
       forceFit: true,
       data: list,
-      xField: 'picture_date',
-      yField: 'picture_like',
+      xField: 'date',
+      yField: 'value',
+      seriesField: 'type',
       smooth: true,
       meta: {
-        picture_date: {
+        date: {
           alias: '时间',
         },
-        picture_like: {
+        like: {
           alias: '点赞数量',
         },
-      },
-      yAxis: {
-        min: 1200,
-        max: 2400,
-      },
-      interactions: [
-        {
-          type: 'slider',
-          cfg: {
-            start: 0,
-            end: 0.3,
-          },
-        },
-      ],
-    };
-
-    const downloadConfig = {
-      title: {
-        visible: true,
-        text: '下载数',
-      },
-      description: {
-        visible: true,
-        text: '统计 90 天内图片下载数量变化趋势',
-      },
-      padding: 'auto',
-      forceFit: true,
-      data: data['num_data'],
-      xField: 'picture_date',
-      yField: 'picture_download',
-      smooth: true,
-      meta: {
-        picture_date: {
-          alias: '时间',
-        },
-        picture_download: {
+        download: {
           alias: '下载数量',
         },
       },
       yAxis: {
-        min: 4500,
+        min: 1200,
         max: 8500,
+      },
+      legend: {
+        visible: true,
+        position: 'top-right',
+      },
+      point: {
+        visible: true,
+        shape: 'circle',
+        size: 6,
+        style: {
+          lineWidth: 2,
+          stroke: '#fff',
+          fillOpacity: 0.8,
+        },
       },
       interactions: [
         {
@@ -100,16 +125,62 @@ export default () => {
           },
         },
       ],
+      events: {
+        onPointClick: e => {
+          try {
+            const d = e.data;
+            if (d) {
+              message.loading({ content: 'Loading...', key: 'picture' });
+              fetch('http://localhost:8001/pictures/' + d.id)
+                .then(response => response.json())
+                .then(data => {
+                  message.success({
+                    content: 'Loaded!',
+                    key: 'picture',
+                    duration: 2,
+                  });
+                  Modal.info({
+                    title: d.date,
+                    centered: true,
+                    width: 600,
+                    icon: null,
+                    content: (
+                      <div>
+                        <img
+                          src={'https://test.lifeni.life' + data.url}
+                          alt={data.text}
+                          style={{
+                            width: '100%',
+                            borderRadius: 2,
+                            margin: '1rem 0 0 0',
+                          }}
+                        />
+                        <Typography.Paragraph
+                          style={{ margin: '2rem 0 1rem 0' }}
+                        >
+                          {data.text}
+                        </Typography.Paragraph>
+                      </div>
+                    ),
+                    onOk() {},
+                  });
+                });
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        },
+      },
     };
 
     return (
       <Section title="必应壁纸" subtitle="Pictures">
         <Col span={24}>
-          <Card title="有关点赞数量的统计">
-            <Row style={{ marginBottom: 24 }} gutter={[24, 24]}>
+          <Card title="数据统计">
+            <Row gutter={[24, 24]}>
               <Col span={16}>
                 <Row gutter={[24, 0]}>
-                  <Col span={12}>
+                  <Col span={10}>
                     <img
                       src={
                         'https://test.lifeni.life' +
@@ -119,12 +190,12 @@ export default () => {
                       style={{ width: '100%', borderRadius: 2 }}
                     />
                   </Col>
-                  <Col span={12}>
+                  <Col span={14}>
                     <Statistic
-                      title="点赞最多的图片"
-                      value={data['max_like_count_image_text']}
+                      title={data['max_like_count_image_date']}
+                      value="点赞最多的图片"
                       style={{ marginBottom: 24, paddingRight: 24 }}
-                      suffix={data['max_like_count_image_date']}
+                      suffix={data['max_like_count_image_text']}
                     />
                   </Col>
                 </Row>
@@ -164,19 +235,10 @@ export default () => {
                 </Row>
               </Col>
             </Row>
-            <Row>
-              <Col span={24}>
-                <Area {...likeConfig} />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-        <Col span={24}>
-          <Card title="有关下载数量的统计">
-            <Row style={{ marginBottom: 24 }} gutter={[24, 24]}>
+            <Row gutter={[24, 24]}>
               <Col span={16}>
                 <Row gutter={[24, 0]}>
-                  <Col span={12}>
+                  <Col span={10}>
                     <img
                       src={
                         'https://test.lifeni.life' +
@@ -186,11 +248,11 @@ export default () => {
                       style={{ width: '100%', borderRadius: 2 }}
                     />
                   </Col>
-                  <Col span={12}>
+                  <Col span={14}>
                     <Statistic
-                      title="下载最多的图片"
-                      value={data['max_download_count_image_text']}
-                      suffix={data['max_download_count_image_date']}
+                      title={data['max_download_count_image_date']}
+                      value="下载最多的图片"
+                      suffix={data['max_download_count_image_text']}
                       style={{ paddingRight: 24, marginBottom: 24 }}
                     />
                   </Col>
@@ -231,9 +293,9 @@ export default () => {
                 </Row>
               </Col>
             </Row>
-            <Row>
+            <Row gutter={[24, 24]}>
               <Col span={24}>
-                <Area {...downloadConfig} />
+                <Area {...config} />
               </Col>
             </Row>
           </Card>
@@ -241,50 +303,28 @@ export default () => {
       </Section>
     );
   }
+
   return (
     <Section title="必应壁纸" subtitle="Pictures">
       <Col span={24}>
-        <Card title="有关点赞数量的统计">
-          <Row style={{ marginBottom: 24 }} gutter={[24, 24]}>
+        <Card title="数据统计">
+          <Row gutter={[24, 24]}>
             <Col span={16}>
-              <Row gutter={[24, 0]}>
-                <Skeleton />
-              </Row>
+              <Skeleton />
             </Col>
             <Col span={8}>
-              <Row style={{ marginBottom: 24 }}>
-                <Skeleton />
-              </Row>
-              <Row>
-                <Skeleton />
-              </Row>
-            </Col>
-          </Row>
-          <Row>
-            <Col span={24}>
               <Skeleton />
             </Col>
           </Row>
-        </Card>
-      </Col>
-      <Col span={24}>
-        <Card title="有关下载数量的统计">
-          <Row style={{ marginBottom: 24 }} gutter={[24, 24]}>
+          <Row gutter={[24, 24]}>
             <Col span={16}>
-              <Row gutter={[24, 0]}>
-                <Skeleton />
-              </Row>
+              <Skeleton />
             </Col>
             <Col span={8}>
-              <Row style={{ marginBottom: 24 }}>
-                <Skeleton />
-              </Row>
-              <Row>
-                <Skeleton />
-              </Row>
+              <Skeleton />
             </Col>
           </Row>
-          <Row>
+          <Row gutter={[24, 24]}>
             <Col span={24}>
               <Skeleton />
             </Col>

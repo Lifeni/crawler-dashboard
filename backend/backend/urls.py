@@ -21,4 +21,7 @@ from server import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index),
+    path('pictures/<str:id>/', views.pictures),
+    path('poems/<str:name>/', views.poems),
+    path('sentences/random/', views.sentences),
 ]

@@ -1,5 +1,14 @@
 import { Column, WordCloud } from '@ant-design/charts';
-import { Card, Col, Row, Statistic, Skeleton } from 'antd';
+import {
+  Card,
+  Col,
+  Row,
+  Statistic,
+  Typography,
+  Skeleton,
+  Modal,
+  message,
+} from 'antd';
 import React, { useEffect, useState, useContext } from 'react';
 import Section from './Section';
 import { DataContext } from '../pages/index';
@@ -48,6 +57,47 @@ const ColumnBlock = () => {
           },
         },
       ],
+      events: {
+        onPlotClick: e => {
+          try {
+            const d = e.target.cfg.element.data;
+            if (d) {
+              message.loading({ content: 'Loading...', key: 'poem' });
+              fetch('http://localhost:8001/poems/' + d.poem_author)
+                .then(response => response.json())
+                .then(data => {
+                  message.success({
+                    content: 'Loaded!',
+                    key: 'poem',
+                    duration: 2,
+                  });
+                  Modal.info({
+                    title: d.poem_author,
+                    centered: true,
+                    width: 600,
+                    icon: null,
+                    content: (
+                      <div>
+                        <Typography.Paragraph
+                          ellipsis={{
+                            rows: 4,
+                            expandable: true,
+                            symbol: 'more',
+                          }}
+                        >
+                          {data.description ? data.description : '没有描述'}
+                        </Typography.Paragraph>
+                      </div>
+                    ),
+                    onOk() {},
+                  });
+                });
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        },
+      },
     };
 
     return <Column {...config} />;
@@ -121,7 +171,7 @@ export default () => {
       <Section title="宋词" subtitle="Poems">
         <Col span={24}>
           <Card title="词作者">
-            <Row style={{ marginBottom: 24 }} gutter={[0, 24]}>
+            <Row gutter={[0, 24]}>
               <Col xl={12} lg={24} sm={24} span={24}>
                 <Statistic
                   title="词最多的作者（不包含无名氏）"
@@ -162,7 +212,7 @@ export default () => {
                 />
               </Col>
             </Row>
-            <Row>
+            <Row gutter={[24, 24]}>
               <Col span={24}>
                 <ColumnBlock />
               </Col>

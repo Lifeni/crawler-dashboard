@@ -1,4 +1,5 @@
 import json
+from urllib.parse import quote, unquote
 
 from django.db.models import Count, Sum, Avg, Max, Min
 from django.http import HttpResponse, JsonResponse
@@ -30,7 +31,7 @@ def index(request):
         'max_download_count_image_date': Pictures.objects.order_by('-picture_download')[0].picture_date,
         'max_download_count_image_text': Pictures.objects.order_by('-picture_download')[0].picture_description,
         'min_download_count': Pictures.objects.aggregate(Min('picture_download'))['picture_download__min'],
-        'num_data': list(Pictures.objects.all().values('picture_date', 'picture_like', 'picture_download'))
+        'num_data': list(Pictures.objects.all().values('id', 'picture_date', 'picture_like', 'picture_download')),
     }
 
     author_poem_list = Poems.objects.values('poem_author').annotate(Count('poem_author')).all().order_by('-poem_author__count')
@@ -70,7 +71,7 @@ def index(request):
         'sentences_category_count': 8,
     }
 
-    response = JsonResponse({
+    return JsonResponse({
         'code': '0',
         'message': 'ok',
         'overview': overview_json,
@@ -79,6 +80,36 @@ def index(request):
         'sentences': sentences_json,
     })
 
-    response['Access-Control-Allow-Origin'] = '*'
 
-    return response
+def sentences(request):
+    sentence = Sentences.objects.all().order_by('?').first()
+
+    return JsonResponse({
+        'code': '0',
+        'message': 'ok',
+        'id': sentence.sentence_id,
+        'category': sentence.sentence_category,
+        'text': sentence.sentence_content,
+        'from': sentence.sentence_from,
+        'from_who': sentence.sentence_from_who,
+    })
+
+
+def poems(request, name):
+    author_name = unquote(name)
+    return JsonResponse({
+        'code': '0',
+        'message': 'ok',
+        'description': PoemsAuthors.objects.filter(author_name=author_name).first().author_description
+    })
+
+
+def pictures(request, id):
+    image = Pictures.objects.filter(id=id).first()
+
+    return JsonResponse({
+        'code': '0',
+        'message': 'ok',
+        'url': image.picture_url,
+        'text': image.picture_description,
+    })
