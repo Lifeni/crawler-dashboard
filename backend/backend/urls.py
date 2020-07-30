@@ -16,6 +16,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from server import views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', views.index),
+
+    # 获取指定 id 的图片信息
+    path('pictures/<str:id>/', views.pictures),
+
+    # 获取指定作者的个人信息
+    path('poems/<str:name>/', views.poems),
+
+    # 获取随机一个句子
+    path('sentences/random/', views.sentences),
 ]
