@@ -147,7 +147,7 @@ export default () => {
                     content: (
                       <div>
                         <img
-                          src={process.env.IMAGE_SITE + data.url}
+                          src={'https://test.lifeni.life' + data.url}
                           alt={data.text}
                           style={{
                             width: '100%',
@@ -183,7 +183,7 @@ export default () => {
                   <Col span={10}>
                     <img
                       src={
-                        process.env.IMAGE_SITE +
+                        'https://test.lifeni.life' +
                         data['max_like_count_image_url']
                       }
                       alt={data['max_like_count_image_text']}
@@ -241,7 +241,7 @@ export default () => {
                   <Col span={10}>
                     <img
                       src={
-                        process.env.IMAGE_SITE +
+                        'https://test.lifeni.life' +
                         data['max_download_count_image_url']
                       }
                       alt={data['max_download_count_image_text']}
